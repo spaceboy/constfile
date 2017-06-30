@@ -2,6 +2,8 @@
 
 namespace Spaceboy\Constfile;
 
+//die(token_name(308));
+
 require('../src/Constfile.php');
 
 $cfManager = new Constfile();
@@ -12,7 +14,7 @@ $cfManager
     ->setBoolean('MY_BOOL_2', 1)
     ->setBoolean('MY_BOOL_3', 0)
     ->setBoolean('MY_BOOL_4', rand(0, 9) > 4)
-    ->setBoolean('my_bool_0', FALSE)
+    ->setBoolean('MY_BOOL_0', FALSE)
     ->clear('MY_BOOL_0')
     ->setInteger('MY_INT_1', TRUE)
     ->setInteger('MY_INT_2', TRUE)
@@ -38,5 +40,11 @@ $cfManager
     ->setFloat('MY_FLOAT_7', '')
     ->setDirname('../test/')
     //->setArray('MY_ARRAY_1', [])
-    //->setCheckDefined(TRUE)
+    ->setCheckDefined(TRUE)
     ->export();
+
+$cfManager
+    ->reset()
+    ->setDirname('../test/')
+    ->import('constfile.php')
+    ->export('constfile2.php');
