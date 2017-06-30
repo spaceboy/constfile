@@ -1,0 +1,15 @@
+{
+    "name": "spaceboy/constfile",
+    "description": "Creates PHP files filled with user-defined constants.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Spaceboy"
+        }
+    ],
+    "keywords": ["spaceboy", "php", "constant"],
+    "require": {
+        "php": ">= 4.0"
+    }
+}
