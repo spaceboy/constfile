@@ -2,21 +2,19 @@
 
 namespace Spaceboy\Constfile;
 
-//die(token_name(308));
-
 require('../src/Constfile.php');
 
 $cfManager = new Constfile();
 
 $cfManager
     //->setCaseInsensitivity(TRUE)
-    ->setBoolean('MY_BOOL_1', TRUE)
-    ->setBoolean('MY_BOOL_2', 1)
-    ->setBoolean('MY_BOOL_3', 0)
-    ->setBoolean('MY_BOOL_4', rand(0, 9) > 4)
+    ->setBoolean('MY_BOOL_1', TRUE, 'boolean true')
+    ->setBoolean('MY_BOOL_2', 1, 'boolean true')
+    ->setBoolean('MY_BOOL_3', 0, 'boolean false')
+    ->setBoolean('MY_BOOL_4', rand(0, 9) > 4, 'boolean random')
     ->setBoolean('MY_BOOL_0', FALSE)
     ->clear('MY_BOOL_0')
-    ->setInteger('MY_INT_1', TRUE)
+    ->setInteger('MY_INT_1', TRUE, 'integer 1')
     ->setInteger('MY_INT_2', TRUE)
     ->setInteger('MY_INT_3', FALSE)
     ->setInteger('MY_INT_4', 3.14)

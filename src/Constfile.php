@@ -35,10 +35,14 @@ class Constfile {
      * Setter for constant of any type
      * @param string $constName
      * @param mixed $value
+     * @param string $description
      * @return $this
      */
-    protected function set ($constName, $value) {
-        $this->values[$constName]   = $value;
+    protected function set ($constName, $value, $description = NULL) {
+        $this->values[$constName]   = [
+            'value' => $value,
+            'desc'  => $description,
+        ];
         return $this;
     }
 
@@ -46,64 +50,95 @@ class Constfile {
      * Setter for "untyped" or "mixed" type constants -- use on your own responsibility!
      * @param string $constName
      * @param mixed $value
+     * @param string $description
      * @return $this
      */
-    public function setAutomatic ($constName, $value) {
-        return $this->set($constName, $value);
+    public function setValue ($constName, $value, $description = NULL) {
+        return $this->set($constName, $value, $description);
+    }
+
+    /**
+     * Setter for array of values
+     * @param array $constArray
+     * @return $this
+     */
+    public function setValues ($constArray) {
+        foreach ($constArray AS $key => $val) {
+            $this->setValue($key, $val);
+        }
+        return $this;
     }
 
     /**
      * Setter for integer constant
      * @param string $constName
      * @param integer $value
+     * @param string $description
      * @return $this
      */
-    public function setInteger ($constName, $value) {
-        return $this->set($constName, intVal($value));
+    public function setInteger ($constName, $value, $description = NULL) {
+        return $this->set($constName, intVal($value), $description);
     }
 
     /**
      * Setter for float constant
      * @param string $constName
      * @param float $value
+     * @param string $description
      * @return $this
      */
-    public function setFloat ($constName, $value) {
-        return $this->set($constName, floatval($value));
+    public function setFloat ($constName, $value, $description = NULL) {
+        return $this->set($constName, floatval($value), $description);
     }
 
     /**
      * Setter for string constant
      * @param string $constName
      * @param string $value
+     * @param string $description
      * @return $this
      */
-    public function setString ($constName, $value) {
-        return $this->set($constName, (string)$value);
+    public function setString ($constName, $value, $description = NULL) {
+        return $this->set($constName, (string)$value, $description);
     }
 
     /**
      * Setter for boolean constant
      * @param string $constName
      * @param boolean $value
+     * @param string $description
      * @return $this
      */
-    public function setBoolean ($constName, $value) {
-        return $this->set($constName, (boolean)$value);
+    public function setBoolean ($constName, $value, $description = NULL) {
+        return $this->set($constName, (boolean)$value, $description);
     }
 
     /**
      * Setter for array constant
      * @param string $constName
      * @param array $value
+     * @param string $description
      * @return $this
      * @throws Spaceboy\Constfile\ConstfileException
      */
-    public function setArray ($constName, $value) {
+    public function setArray ($constName, $value, $decription = NULL) {
         if (PHP_VERSION_ID < 70000) {
             throw new ConstfileException("Error creating {$constName}: PHP 7 required for array constants.");
         }
 
+    }
+
+    /**
+     * returns description of given constant
+     * @param string $constName
+     * @return string
+     * @throws Spaceboy\Constfile\ConstfileException
+     */
+    public function getDescription ($constName) {
+        if (!array_key_exists($constName, $this->values)) {
+            throw new ConstfileException("Unknown name of constant \"{$constName}\".");
+        }
+        return $this->values[$constName]['desc'];
     }
 
     /**
@@ -116,6 +151,19 @@ class Constfile {
         if (!array_key_exists($constName, $this->values)) {
             throw new ConstfileException("Unknown name of constant \"{$constName}\".");
         }
+        return $this->values[$constName]['value'];
+    }
+
+    /**
+     * returns array of descriptions of all set constants
+     * @return array
+     */
+    public function getDescriptions () {
+        $ret    = [];
+        foreach ($this->values AS $key => $val) {
+            $ret[$key]  = $val['value'];
+        }
+        return $ret;
     }
 
     /**
@@ -123,7 +171,11 @@ class Constfile {
      * @return array
      */
     public function getValues () {
-        return $this->values;
+        $ret    = [];
+        foreach ($this->values AS $key => $val) {
+            $ret[$key]  = $val['value'];
+        }
+        return $ret;
     }
 
     /**
@@ -228,32 +280,43 @@ class Constfile {
     private function parse ($tokens) {
         $inDefine   = FALSE;
         $constName  = NULL;
+        $constDesc  = NULL;
         foreach ($tokens as $token) {
             if (!is_array($token)) {
                 continue;
             }
-            if (!$inDefine && (T_STRING != $token[0] || 'define' != $token[1])) {
-                continue;
+            if (!$inDefine) {
+                if (in_array($token[0], [T_DOC_COMMENT, T_COMMENT])) {
+                    $constDesc  = trim(preg_replace('#^/\*+\s+(.*)\s+\*/$#', '$1', $token[1]));
+                    continue;
+                }
+                if (T_STRING != $token[0] || 'define' != $token[1]) {
+                    continue;
+                    $constDesc  = NULL;
+                }
             }
             $inDefine   = TRUE;
             switch ($token[0]) {
                 case T_LNUMBER:
-                    $this->setInteger($constName, $token[1]);
+                    $this->setInteger($constName, $token[1], $constDesc);
                     $inDefine   = FALSE;
                     $constName  = NULL;
+                    $constDesc  = NULL;
                     break;
                 case T_DNUMBER:
-                    $this->setFloat($constName, $token[1]);
+                    $this->setFloat($constName, $token[1], $constDesc);
                     $inDefine   = FALSE;
                     $constName  = NULL;
+                    $constDesc  = NULL;
                     break;
                 case T_CONSTANT_ENCAPSED_STRING:
                     if (is_null($constName)) {
                         $constName  = $this->parseString($token[1]);
                     } else {
-                        $this->setString($constName, $this->parseString($token[1]));
+                        $this->setString($constName, $this->parseString($token[1]), $constDesc);
                         $inDefine   = FALSE;
                         $constName  = NULL;
+                        $constDesc  = NULL;
                     }
                     break;
                 case T_STRING:
@@ -261,14 +324,16 @@ class Constfile {
                         case 'define':
                             break;
                         case 'TRUE':
-                            $this->setBoolean($constName, TRUE);
+                            $this->setBoolean($constName, TRUE, $constDesc);
                             $inDefine   = FALSE;
                             $constName  = NULL;
+                            $constDesc  = NULL;
                             break;
                         case 'FALSE':
-                            $this->setBoolean($constName, FALSE);
+                            $this->setBoolean($constName, FALSE, $constDesc);
                             $inDefine   = FALSE;
                             $constName  = NULL;
+                            $constDesc  = NULL;
                             break;
                         default:
                             throw new ConstfileException('Unable to decode value \"{$token[1]}\"');
@@ -295,7 +360,10 @@ class Constfile {
             : ''
         );
         $output = '<?php'. PHP_EOL;
-        foreach ($this->values AS $key => $val) {
+        foreach ($this->getValues() AS $key => $val) {
+            if ($desc = $this->getDescription($key)) {
+                $output .= "/** {$desc} */".PHP_EOL;
+            }
             if (is_string($val)) {
                 $val = '"'.str_replace('"', '\"', $val).'"';
             } elseif (is_bool($val)) {
