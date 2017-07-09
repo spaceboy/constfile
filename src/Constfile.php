@@ -125,7 +125,7 @@ class Constfile {
         if (PHP_VERSION_ID < 70000) {
             throw new ConstfileException("Error creating {$constName}: PHP 7 required for array constants.");
         }
-
+        return $this->set($constName, $value, $description);
     }
 
     /**
@@ -297,6 +297,12 @@ class Constfile {
             }
             $inDefine   = TRUE;
             switch ($token[0]) {
+                case T_ARRAY:
+                    $this->setArray($constName, $token[1], $constDesc);
+                    $inDefine   = FALSE;
+                    $constName  = NULL;
+                    $constDesc  = NULL;
+                    break;
                 case T_LNUMBER:
                     $this->setInteger($constName, $token[1], $constDesc);
                     $inDefine   = FALSE;
@@ -336,9 +342,13 @@ class Constfile {
                             $constDesc  = NULL;
                             break;
                         default:
-                            throw new ConstfileException('Unable to decode value \"{$token[1]}\"');
+                            throw new ConstfileException("Unable to decode value \"{$token[1]}\"");
                     }
                     break;
+                case T_WHITESPACE:
+                    break;
+                default:
+                    throw new ConstfileException('Unexpected token '.token_name($token[0]));
             }
         }
     }
@@ -368,6 +378,8 @@ class Constfile {
                 $val = '"'.str_replace('"', '\"', $val).'"';
             } elseif (is_bool($val)) {
                 $val = ['FALSE', 'TRUE'][(int)$val];
+            } elseif (is_array($val)) {
+                $val = var_export($val, TRUE);
             }
             if ($this->checkDefined) {
                 $output .= "if (!defined('{$key}')) ";
