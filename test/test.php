@@ -3,13 +3,14 @@
 namespace Spaceboy\Constfile;
 
 require('../src/Constfile.php');
+require('../src/ConstfileException.php');
 
 $cfManager = new Constfile();
 
 try {
     $cfManager
         //->setCaseInsensitivity(TRUE)
-        ->setValue('MY_ARRAY_1', ['a', 'b', 'c', 'x' => ['A', "B\nB", 'C']])
+        //->setValue('MY_ARRAY_1', ['a', 'b', 'c', 'x' => ['A', "B\nB", 'C']])
         ->setBoolean('MY_BOOL_1', TRUE, 'boolean true')
         ->setBoolean('MY_BOOL_2', 1, 'boolean true')
         ->setBoolean('MY_BOOL_3', 0, 'boolean false')

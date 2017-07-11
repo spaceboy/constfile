@@ -1,6 +1,5 @@
 <?php
 
-die('Const');
 namespace Spaceboy\Constfile;
 
 class Constfile {
@@ -318,6 +317,7 @@ class Constfile {
                 case T_CONSTANT_ENCAPSED_STRING:
                     if (is_null($constName)) {
                         $constName  = $this->parseString($token[1]);
+                        continue;
                     } else {
                         $this->setString($constName, $this->parseString($token[1]), $constDesc);
                         $inDefine   = FALSE;
