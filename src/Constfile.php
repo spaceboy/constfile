@@ -290,7 +290,6 @@ class Constfile {
                     continue;
                 }
                 if (T_STRING != $token[0] || 'define' != $token[1]) {
-	                $constDesc  = NULL;
                     continue;
                 }
             }
