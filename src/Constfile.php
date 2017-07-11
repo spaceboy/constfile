@@ -1,16 +1,7 @@
 <?php
 
+die('Const');
 namespace Spaceboy\Constfile;
-
-if (!defined('PHP_VERSION_ID')) {
-    $version = explode('.', PHP_VERSION);
-    define('PHP_VERSION_ID', ($version[0] * 10000 + $version[1] * 100 + $version[2]));
-}
-
-class ConstfileException extends \Exception {
-
-    protected   $message    = 'Constfile exception';
-}
 
 class Constfile {
 
@@ -31,7 +22,15 @@ class Constfile {
     /** @var bool carefully check if const is already defined */
     protected   $checkDefined       = FALSE;
 
-    /**
+    public function __construct()
+    {
+	    if (!defined('PHP_VERSION_ID')) {
+		    $version = explode('.', PHP_VERSION);
+		    define('PHP_VERSION_ID', ($version[0] * 10000 + $version[1] * 100 + $version[2]));
+	    }
+    }
+
+	/**
      * Setter for constant of any type
      * @param string $constName
      * @param mixed $value
@@ -119,9 +118,9 @@ class Constfile {
      * @param array $value
      * @param string $description
      * @return $this
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
-    public function setArray ($constName, $value, $decription = NULL) {
+    public function setArray ($constName, $value, $description = NULL) {
         if (PHP_VERSION_ID < 70000) {
             throw new ConstfileException("Error creating {$constName}: PHP 7 required for array constants.");
         }
@@ -132,7 +131,7 @@ class Constfile {
      * returns description of given constant
      * @param string $constName
      * @return string
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
     public function getDescription ($constName) {
         if (!array_key_exists($constName, $this->values)) {
@@ -145,7 +144,7 @@ class Constfile {
      * returns value of given constant
      * @param string $constName
      * @return mixed
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
     public function getValue ($constName) {
         if (!array_key_exists($constName, $this->values)) {
@@ -180,7 +179,7 @@ class Constfile {
 
     /**
      * Destroys constant
-     * @param string const name
+     * @param string $constName
      * @return $this
      */
     public function clear ($constName) {
@@ -201,7 +200,7 @@ class Constfile {
 
     /**
      * Setter for case insensivity option
-     * @param bool caseInsensitive
+     * @param bool $value
      * @return $this
      */
     public function setCaseInsensitivity ($value) {
@@ -222,9 +221,9 @@ class Constfile {
     /**
      * Sets output directory;
      * if not set, sets DIR of THIS file
-     * @param string dirname
+     * @param string $dirName
      * @return $this
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
     public function setDirname ($dirName = NULL) {
         $dirName = (
@@ -269,13 +268,14 @@ class Constfile {
                 return str_replace('\"', '"', substr($str, 1, $len - 2));
                 break;
         }
+        return $str;
     }
 
     /**
      * Parses PHP tokens
      * @param array $tokens
      * @return $this
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
     private function parse ($tokens) {
         $inDefine   = FALSE;
@@ -291,8 +291,8 @@ class Constfile {
                     continue;
                 }
                 if (T_STRING != $token[0] || 'define' != $token[1]) {
+	                $constDesc  = NULL;
                     continue;
-                    $constDesc  = NULL;
                 }
             }
             $inDefine   = TRUE;
@@ -351,13 +351,14 @@ class Constfile {
                     throw new ConstfileException('Unexpected token '.token_name($token[0]));
             }
         }
+        return $this;
     }
 
     /**
      * Exports const to const file
      * @param string $fileName
      * @return boolean
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
     public function export ($fileName = NULL) {
         $this->setFilename($fileName);
@@ -393,7 +394,7 @@ class Constfile {
      * Imports consts from PHP file
      * @param string $fileName
      * @return $this
-     * @throws Spaceboy\Constfile\ConstfileException
+     * @throws ConstfileException
      */
     public function import ($fileName) {
         if (!file_exists($fileName)) {

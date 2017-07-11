@@ -9,6 +9,9 @@
         }
     ],
     "keywords": ["spaceboy", "php", "constant"],
+    "autoload": {
+        "classmap": ["src"]
+    },
     "require": {
         "php": ">= 4.2.0"
     }
